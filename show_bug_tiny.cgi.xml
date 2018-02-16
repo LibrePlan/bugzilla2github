@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE bugzilla SYSTEM "http://bugs.libreplan.org/bugzilla.dtd">
+<bugzilla version="4.0.2" urlbase="http://bugs.libreplan.org/" maintainer="jeroen@libreplan.nl" exporter="jeroen@libreplan.com">
+
+    <bug>
+          <bug_id>246</bug_id>
+          
+          <creation_ts>2010-01-16 19:15:00 +0000</creation_ts>
+          <short_desc>An added advance assignment is not propagated as indirect advance assignment to all ancestors</short_desc>
+          <delta_ts>2012-09-10 05:56:17 +0000</delta_ts>
+          <reporter_accessible>1</reporter_accessible>
+          <cclist_accessible>1</cclist_accessible>
+          <classification_id>1</classification_id>
+          <classification>Unclassified</classification>
+          <product>LibrePlan</product>
+          <component>Administration / Management</component>
+          <version>navalplan-1.1 (1.1.x)</version>
+          <rep_platform>All</rep_platform>
+          <op_sys>Linux</op_sys>
+          <bug_status>NEW</bug_status>
+          <resolution/>
+          
+          
+          <bug_file_loc/>
+          <status_whiteboard/>
+          <keywords/>
+          <priority>P3</priority>
+          <bug_severity>major</bug_severity>
+          <target_milestone>---</target_milestone>
+          
+          
+          <everconfirmed>1</everconfirmed>
+          <reporter name="Oscar González">ogonzalez@igalia.com</reporter>
+          <assigned_to name="Javier Morán">jmoran@igalia.com</assigned_to>
+          <cc>iluvsap@gmail.com</cc>
+          <estimated_time>0.00</estimated_time>
+          <remaining_time>0.00</remaining_time>
+          <actual_time>0.00</actual_time>
+          
+          <cf_browser>---</cf_browser>
+
+      
+          <token>1518372741-46ff4cb572b570cc24d3ec7dd2beafae</token>
+
+      
+
+      
+
+          <long_desc isprivate="0">
+            <commentid>583</commentid>
+            <who name="Oscar González">ogonzalez@igalia.com</who>
+            <bug_when>2010-01-16 19:15:32 +0000</bug_when>
+            <thetext>It's only propagated to its immediate parent.
+In memory it's added but when saving only the indirect advance assignment at immediate parent is saved. So after adding an advance assignment it's shown at all ancestors (unless for the order[this is because the tab is already loaded with the initial data]). But once the order is saved the indirect advance assignment only appears at the immediate parent.
+
+The cause of the problem is that the same indirect advance assignment object is added to all parents. So only an indirect advance assignment is created.
+
+Proposed solution: Just create a new indirect advance assignment for each ancestor. The method to be edited:
+org.navalplanner.business.orders.entities.OrderLineGroup.addIndirectAdvanceAssignment(IndirectAdvanceAssignment)</thetext>
+          </long_desc>
+          <long_desc isprivate="0">
+            <commentid>4283</commentid>
+            <who name="madhavan">iluvsap@gmail.com</who>
+            <bug_when>2012-09-10 05:55:11 +0000</bug_when>
+            <thetext>*** Bug 1532 has been marked as a duplicate of this bug. ***</thetext>
+          </long_desc>
+          <long_desc isprivate="0">
+            <commentid>4285</commentid>
+            <who name="madhavan">iluvsap@gmail.com</who>
+            <bug_when>2012-09-10 05:56:17 +0000</bug_when>
+            <thetext>*** Bug 1531 has been marked as a duplicate of this bug. ***</thetext>
+          </long_desc>
+      
+      
+
+    </bug>
+    <bug>
+          <bug_id>685</bug_id>
+          
+          <creation_ts>2010-10-15 19:03:00 +0000</creation_ts>
+          <short_desc>NPE when choosing opening advance assignments in order 777</short_desc>
+          <delta_ts>2011-05-20 14:40:40 +0000</delta_ts>
+          <reporter_accessible>1</reporter_accessible>
+          <cclist_accessible>1</cclist_accessible>
+          <classification_id>1</classification_id>
+          <classification>Unclassified</classification>
+          <product>LibrePlan</product>
+          <component>Administration / Management</component>
+          <version>navalplan-1.1 (1.1.x)</version>
+          <rep_platform>All</rep_platform>
+          <op_sys>Linux</op_sys>
+          <bug_status>NEW</bug_status>
+          <resolution/>
+          
+          
+          <bug_file_loc/>
+          <status_whiteboard/>
+          <keywords/>
+          <priority>P3</priority>
+          <bug_severity>normal</bug_severity>
+          <target_milestone>---</target_milestone>
+          
+          
+          <everconfirmed>1</everconfirmed>
+          <reporter name="Oscar González">ogonzalez@igalia.com</reporter>
+          <assigned_to name="Javier Morán">jmoran@igalia.com</assigned_to>
+          
+          <estimated_time>0.00</estimated_time>
+          <remaining_time>0.00</remaining_time>
+          <actual_time>0.00</actual_time>
+          
+          <cf_browser>---</cf_browser>
+
+      
+          <token>1518372741-2b87280687f1f3d6f70da43e966de42b</token>
+
+      
+
+      
+
+          <long_desc isprivate="0">
+            <commentid>1675</commentid>
+            <who name="Oscar González">ogonzalez@igalia.com</who>
+            <bug_when>2010-10-15 19:03:30 +0000</bug_when>
+            <thetext>I didn't manage to reproduce it.
+
+java.lang.NullPointerException
+	at org.navalplanner.business.orders.entities.OrderLineGroup.mergeAdvanceMeasurements(OrderLineGroup.java:660)
+	at org.navalplanner.business.orders.entities.OrderLineGroup.mergeAdvanceMeasurements(OrderLineGroup.java:510)
+	at org.navalplanner.business.orders.entities.OrderLineGroup.mergeAdvanceAssignments(OrderLineGroup.java:492)
+	at org.navalplanner.business.orders.entities.OrderLineGroup.calculateFakeDirectAdvanceAssignment(OrderLineGroup.java:404)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:616)
+	at org.hibernate.proxy.pojo.cglib.CGLIBLazyInitializer.invoke(CGLIBLazyInitializer.java:157)
+	at org.navalplanner.business.orders.entities.Order$$EnhancerByCGLIB$$8b38f869.calculateFakeDirectAdvanceAssignment(&lt;generated&gt;)
+	at org.navalplanner.web.planner.advances.AdvanceAssignmentPlanningModel.loadAdvances(AdvanceAssignmentPlanningModel.java:129)
+	at org.navalplanner.web.planner.advances.AdvanceAssignmentPlanningModel.loadAdvances(AdvanceAssignmentPlanningModel.java:109)
+	at org.navalplanner.web.planner.advances.AdvanceAssignmentPlanningModel.initOrderElement(AdvanceAssignmentPlanningModel.java:99)
+	at org.navalplanner.web.planner.advances.AdvanceAssignmentPlanningModel.initAdvancesFor(AdvanceAssignmentPlanningModel.java:86)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:616)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:307)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:182)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:149)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:106)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:171)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:204)
+	at $Proxy138.initAdvancesFor(Unknown Source)
+	at org.navalplanner.web.planner.advances.AdvanceAssignmentPlanningController.showWindow(AdvanceAssignmentPlanningController.java:75)
+	at org.navalplanner.web.planner.advances.AdvanceAssignmentPlanningCommand.doAction(AdvanceAssignmentPlanningCommand.java:61)
+	at org.navalplanner.web.planner.advances.AdvanceAssignmentPlanningCommand.doAction(AdvanceAssignmentPlanningCommand.java:1)
+	at org.zkoss.ganttz.CommandOnTaskContextualized.doAction(CommandOnTaskContextualized.java:71)
+	at org.zkoss.ganttz.CommandOnTaskContextualized.doAction(CommandOnTaskContextualized.java:56)
+	at org.zkoss.ganttz.CommandOnTaskContextualized$1.onEvent(CommandOnTaskContextualized.java:86)
+	at org.zkoss.ganttz.CommandOnTaskContextualized$1.onEvent(CommandOnTaskContextualized.java:1)
+	at org.zkoss.ganttz.util.MenuBuilder$2.onEvent(MenuBuilder.java:129)
+	at org.zkoss.zk.ui.impl.EventProcessor.process0(EventProcessor.java:197)
+	at org.zkoss.zk.ui.impl.EventProcessor.process(EventProcessor.java:141)
+	at org.zkoss.zk.ui.impl.EventProcessingThreadImpl.process0(EventProcessingThreadImpl.java:519)
+	at org.zkoss.zk.ui.impl.EventProcessingThreadImpl.run(EventProcessingThreadImpl.java:446)</thetext>
+          </long_desc>
+          <long_desc isprivate="0">
+            <commentid>1676</commentid>
+              <attachid>216</attachid>
+            <who name="Oscar González">ogonzalez@igalia.com</who>
+            <bug_when>2010-10-15 19:05:45 +0000</bug_when>
+            <thetext>Created attachment 216
+dump</thetext>
+          </long_desc>
+      
+          <attachment isobsolete="0" ispatch="0" isprivate="0" isurl="0">
+            <attachid>216</attachid>
+            <date>2010-10-15 19:05:00 +0000</date>
+            <delta_ts>2010-10-15 19:05:45 +0000</delta_ts>
+            <desc>dump</desc>
+            <filename>dump-bug.sql.gz</filename>
+            <type>application/octet-stream</type>
+            <size>355915</size>
+            <attacher>ogonzalez@igalia.com</attacher>
+            
+              <token>1518372741-576da6e2b8fa89c0812959ee76ba47a9</token>
+
+          </attachment>
+      
+
+    </bug>
+    <bug>
+          <bug_id>201</bug_id>
+          
+          <creation_ts>2009-12-23 20:59:00 +0000</creation_ts>
+          <short_desc>ConstraintChecker does not validate components properly</short_desc>
+          <delta_ts>2011-05-20 14:40:44 +0000</delta_ts>
+          <reporter_accessible>1</reporter_accessible>
+          <cclist_accessible>1</cclist_accessible>
+          <classification_id>1</classification_id>
+          <classification>Unclassified</classification>
+          <product>LibrePlan</product>
+          <component>Administration / Management</component>
+          <version>navalplan-1.1 (1.1.x)</version>
+          <rep_platform>All</rep_platform>
+          <op_sys>Linux</op_sys>
+          <bug_status>NEW</bug_status>
+          <resolution/>
+          
+          
+          <bug_file_loc/>
+          <status_whiteboard/>
+          <keywords/>
+          <priority>P5</priority>
+          <bug_severity>enhancement</bug_severity>
+          <target_milestone>---</target_milestone>
+          
+          
+          <everconfirmed>1</everconfirmed>
+          <reporter name="Diego Pino">dpino@igalia.com</reporter>
+          <assigned_to name="Diego Pino">dpino@igalia.com</assigned_to>
+          
+          <estimated_time>0.00</estimated_time>
+          <remaining_time>0.00</remaining_time>
+          <actual_time>0.00</actual_time>
+          
+          <cf_browser>---</cf_browser>
+
+      
+          <token>1518372741-cf68ab9e6d693ef461d3ecc3fecc6cb4</token>
+
+      
+
+      
+
+          <long_desc isprivate="0">
+            <commentid>482</commentid>
+            <who name="Diego Pino">dpino@igalia.com</who>
+            <bug_when>2009-12-23 20:59:28 +0000</bug_when>
+            <thetext>* Consider a form with several input textbox, each of them with their own constraint.
+   * Type a wrong value in one of them
+   * Click on save
+
+Although there's one textbox which is invalid, the form is saved correctly.
+
+The class ConstraintCheck.isValid() checks forms before saving. It should prevent the form from being saved.</thetext>
+          </long_desc>
+          <long_desc isprivate="0">
+            <commentid>483</commentid>
+            <who name="Diego Pino">dpino@igalia.com</who>
+            <bug_when>2009-12-23 21:19:00 +0000</bug_when>
+            <thetext>One of the reasons why this is happening has to do with the fact that when an invalid input is typed in a component with a constraint, the constraint prevents attribute _value_ to be assigned with the wrong value.
+
+So, when ConstraintChecker.isValid() parses the form forcing constraints to be triggered by calling component.getValue(), getValue() returns the original value bound to the model, not the wrong one (the one typed in the box).
+
+One way of fixing this behaviour is to check whether the component is already invalid. In that case, we can throw a WrongValueException() with the constraint message.
+
+However, this solution doesn't fix all scenarios. In the case of WorkerReport, what is happening is that _first name_ may be invalid, now we switch to _last name_ and type something else. Now, we click on save. At the moment save is clicked, before checking all constraints, an onChange event is triggered for _last name_ (so value typed in textbox is assigned to its model). The invalid value is also refreshed with the value from the model, and after that the form is checked with ConstraintChecked. All values at that moment are valid, so the form is saved successfully.
+
+The question is why an onChange() event in _lastname_ produces that all the form is refreshed (it may be a Util.reloadBindings(), but I didn't find any hint that a reloadBindings is being executed after modifying _lastname_)</thetext>
+          </long_desc>
+      
+      
+
+    </bug>
+    <bug>
+          <bug_id>983</bug_id>
+          
+          <creation_ts>2011-04-13 17:25:00 +0000</creation_ts>
+          <short_desc>Sigmoid function modifies task's endDate and resourceAllocation number of resources per day</short_desc>
+          <delta_ts>2011-04-13 17:26:19 +0000</delta_ts>
+          <reporter_accessible>1</reporter_accessible>
+          <cclist_accessible>1</cclist_accessible>
+          <classification_id>1</classification_id>
+          <classification>Unclassified</classification>
+          <product>LibrePlan</product>
+          <component>Scheduling</component>
+          <version>navalplan-1.1 (1.1.x)</version>
+          <rep_platform>All</rep_platform>
+          <op_sys>All</op_sys>
+          <bug_status>NEW</bug_status>
+          <resolution/>
+          
+          
+          <bug_file_loc/>
+          <status_whiteboard/>
+          <keywords/>
+          <priority>P5</priority>
+          <bug_severity>major</bug_severity>
+          <target_milestone>---</target_milestone>
+          
+          
+          <everconfirmed>1</everconfirmed>
+          <reporter name="Diego Pino">dpino@igalia.com</reporter>
+          <assigned_to name="Diego Pino">dpino@igalia.com</assigned_to>
+          
+          <estimated_time>0.00</estimated_time>
+          <remaining_time>0.00</remaining_time>
+          <actual_time>0.00</actual_time>
+          
+          <cf_browser>---</cf_browser>
+
+      
+          <token>1518372741-64f3ca7501a6090314b326413855a5cd</token>
+
+      
+
+      
+
+          <long_desc isprivate="0">
+            <commentid>2513</commentid>
+            <who name="Diego Pino">dpino@igalia.com</who>
+            <bug_when>2011-04-13 17:25:56 +0000</bug_when>
+            <thetext>Steps to reproduce:
+
+   * Create a project with at least a task.
+   Go to Gantt view and do an allocation on that task. Allocate 100 hours. Consider the resource has a standard calendar (8h per day, except Sat and Sun).
+   * Save and go to advance allocation.
+   * Apply a Sigmoid function on that task. The number of hours change for each day. 
+   * The end date of the task increases in 1 day.
+   * Save the project and go back to Gantt
+   * Edit the task and check number of resources per day.
+   * Before it was 1.00 now it's 0.96.
+
+Actual result:
+After the allocation of the Sigmoid function the end date of the task increases in 1 day. The number of resources per day changes too.
+
+Expected result:
+The allocation is done keeping the size of the task the same. The number of resources per day should remain constant.</thetext>
+          </long_desc>
+      
+      
+
+    </bug>
+</bugzilla>
