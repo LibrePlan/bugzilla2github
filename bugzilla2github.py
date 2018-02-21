@@ -3,6 +3,7 @@
 #
 # Bugzilla XML File to GitHub Issues Converter
 # by Andriy Berestovskyy
+# Adapted to LibrePlan project by J. Baten d.d. februari 2018
 #
 # How to use the script:
 # 1. Generate a GitHub access token:
@@ -24,11 +25,12 @@
 #
 
 import json, getopt, os, pprint, re, requests, sys, time, xml.etree.ElementTree
+from pprint import pprint,pformat
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-force_update = False
+# force_update = True
 xml_file = "show_bug_tiny.cgi.xml"
 github_url = "https://api.github.com"
 github_owner = "kwoot"
@@ -54,17 +56,36 @@ component2labels = {
     "Resources": ["Resources"],
     "Scheduling": ["Scheduling"],
     "Web services": ["Web services"],
-
 }
+
+# default github labels:
+#
+# bug
+# duplicate
+# enhancement
+# good first issue
+# help wanted
+# invalid
+# question
+# wontfix
+
 priority2labels = {
     "__name__": "priority to GitHub labels",
-    "Lowest": ["low priority"],
-    "Low": ["low priority"],
-    "---": [],
-    "Normal": [],
-    "High": ["high priority"],
-    "Highest": ["high priority"],
+    "P1": ["low priority"],
+    "P2": ["low priority"],
+    "P3": [],
+    "P4": [],
+    "P5": ["high priority"],
 }
+
+# <bug_severity>blocker</bug_severity>
+# <bug_severity>critical</bug_severity>
+# <bug_severity>enhancement</bug_severity>
+# <bug_severity>major</bug_severity>
+# <bug_severity>minor</bug_severity>
+# <bug_severity>normal</bug_severity>
+# <bug_severity>trivial</bug_severity>
+
 severity2labels = {
     "__name__": "severity to GitHub labels",
     "enhancement": ["enhancement"],
@@ -75,6 +96,15 @@ severity2labels = {
     "critical": ["major", "bug"],
     "blocker": ["major", "bug"],
 }
+
+# <resolution/>
+# <resolution>DUPLICATE</resolution>
+# <resolution>FIXED</resolution>
+# <resolution>INVALID</resolution>
+# <resolution>MOVED</resolution>
+# <resolution>WONTFIX</resolution>
+# <resolution>WORKSFORME</resolution>
+
 resolution2labels = {
     "__name__": "resolution to GitHub labels",
     "FIXED": [],
@@ -100,7 +130,7 @@ bug_unused_fields = [
     "rep_platform",
     "target_milestone",
     "token",
-    "version",
+    # "version",
 ]
 comment_unused_fields = [
     "comment_count",
@@ -292,8 +322,8 @@ def comments_convert(comments, attachments):
 def bug_convert(bug):
     ret = {}
     ret["body"] = []
-    ret["body"].append("Note: the issue was created automatically with %s tool"
-                        % os.path.basename(__file__))
+    # ret["body"].append("Note: the issue was created automatically with %s tool"
+    #                     % os.path.basename(__file__))
     ret["body"].append("")
     ret["labels"] = []
     ret["assignees"] = []
@@ -311,6 +341,8 @@ def bug_convert(bug):
     ret["title"] = bug.pop("short_desc")
     # Convert creation_ts to created_at
     ret["created_at"] = bug.pop("creation_ts")
+    # Convert version to version
+    ret["version"] = bug.pop("version")
     # Convert delta_ts to updated_at
     ret["updated_at"] = bug.pop("delta_ts")
     # Convert reporter to user login
@@ -336,6 +368,7 @@ def bug_convert(bug):
     ret["body"].append("Date: " + ret["created_at"])
     ret["body"].append("From: " + ret["user.login"])
     ret["body"].append("To:   " + ", ".join(ret["assignees"]))
+    ret["body"].append("Version: " + ret["version"])
     if "cc" in bug:
         ret["body"].append("CC:   " + ", ".join(emails_convert(bug.pop("cc"))))
     # Extra information
@@ -376,12 +409,14 @@ def bugs_convert(xml_root):
         bug = XML2dict(xml_bug)
         issue = bug_convert(bug)
         # Check for duplicates
-        id = issue["number"]
+        #id = issue["number"]
+        id=len(issues)+1
         if id in issues:
             print("Error checking for duplicates: bug #%d is duplicated in the '%s'"
                             % (id, xml_file))
+        issue["myid"]=id
         issues[id] = issue
-
+    pprint(issues)
     return issues
 
 
@@ -405,7 +440,7 @@ def github_get(url, avs = {}):
 
 
 def github_post(url, avs = {}, fields = []):
-    global force_update
+    # global force_update
     global xml_file, github_url, github_owner, github_repo, github_token
 
     if url[0] == "/":
@@ -417,24 +452,24 @@ def github_post(url, avs = {}, fields = []):
     # Copy fields into the data
     for field in fields:
         if field not in avs:
-            print "Error posting filed %s to %s" % (field, url)
+            print "Error posting field %s to %s" % (field, url)
             exit(1)
         d[field] = avs[field]
 
     # TODO: debug
-    # print "POST: " + u
-    # print "DATA: " + json.dumps(d)
+    # print "POST: " + pformat(u)
+    # print "DATA: " + pformat(json.dumps(d))
 
-    if force_update:
-        return requests.post(u, params = { "access_token": github_token },
-                                data = json.dumps(d))
-    else:
-        if not github_post.warn:
-            print "Skipping POST... (use -f to force updates)"
-            github_post.warn = True
-        return True
-
-github_post.warn = False
+    # if force_update:
+    result=requests.post(u, params = { "access_token": github_token },
+                            data = json.dumps(d))
+    return result
+    # else:
+    # if not github_post.warn:
+    #     print "Skipping POST... (use -f to force updates)"
+    #     github_post.warn = True
+    # return True
+    # github_post.warn = False
 
 
 def github_label_create(label):
@@ -467,18 +502,18 @@ def github_labels_check(issues):
                 print "WARNING: label '%s' does not exist on GitHub" % label
 
 
-def github_assignees_check(issues):
-    a_set = set()
-    for id in issues:
-        for assignee in issues[id]["assignees"]:
-            a_set.add(assignee)
-
-    for assignee in a_set:
-        if not github_get("/users/" + assignee):
-            print "Error checking user '%s' on GitHub" % assignee
-            exit(1)
-        else:
-            print "Assignee '%s' exists" % assignee
+# def github_assignees_check(issues):
+#     a_set = set()
+#     for id in issues:
+#         for assignee in issues[id]["assignees"]:
+#             a_set.add(assignee)
+#
+#     for assignee in a_set:
+#         if not github_get("/users/" + assignee):
+#             print "Error checking user '%s' on GitHub" % assignee
+#             exit(1)
+#         else:
+#             print "Assignee '%s' exists" % assignee
 
 
 def github_issue_exist(number):
@@ -498,7 +533,8 @@ def github_issue_get(number):
 
 
 def github_issue_update(issue):
-    id = issue["number"]
+    #id = issue["number"]
+    id = issue["myid"]
 
     print "\tupdating issue #%d on GitHub..." % id
     r = github_post("issues/%d" % id, issue,
@@ -532,7 +568,8 @@ def renumbering_comment_create(orig_id, new_id):
 
 def github_comment_add(issue):
     orig_id = issue["orig_number"]
-    new_id = issue["number"]
+    #new_id = issue["number"]
+    new_id = issue["myid"]
     print "\tadding a comment to original issue #%d on GitHub..." % orig_id
     comment = renumbering_comment_create(orig_id, new_id)
     r = github_post("issues/%d/comments" % orig_id, comment, ["body"])
@@ -544,7 +581,8 @@ def github_comment_add(issue):
 
 def github_comment_update(issue):
     orig_id = issue["orig_number"]
-    new_id = issue["number"]
+    #new_id = issue["number"]
+    new_id = issue["myid"]
     print "\tupdating comment to original issue #%d on GitHub..." % orig_id
     r = github_get("issues/%d/comments" % orig_id)
     if r:
@@ -577,9 +615,15 @@ def github_comment_update(issue):
 def github_issues_add(issues):
     postponed = {}
     nb_postponed = 0
-    for i in xrange(len(issues)):
-        id = i + 1
-        issue = issues[id]
+    # pprint(len(issues))
+    # pprint(issues)
+    # for i in xrange(len(issues)):
+    #     id = i + 1
+    #     issue = issues[id]
+    for id in issues:
+        issue=issues.get(id)
+        pprint(issue)
+        #id=issue{id}
         github_issue = github_get("issues/%d" % id)
         if github_issue:
             # Check if the issue was imported from the Bugzilla
@@ -594,20 +638,20 @@ def github_issues_add(issues):
         else:
             print "Creating issue #%d..." % id
             # Make sure the previous issue already exist
-            if force_update and id > 1 and not github_issue_exist(id - 1):
-                print "Error adding issue #%d on GitHub: previous issue does not exists" \
-                        % id
-                exit(1)
+            # if force_update and id > 1 and not github_issue_exist(id - 1):
+            #    print "Error adding issue #%d on GitHub: previous issue does not exists" \
+            #            % id
+            #    exit(1)
             req = github_issue_append(issue)
-            if force_update:
-                new_issue = github_get(req.headers["location"]).json()
-                if new_issue["number"] != id:
-                    print "Error adding issue #%d: assigned unexpected issue id #%d" \
-                        % (id, new_issue["number"])
-                    exit(1)
-                # Update issue state
-                if issue["state"] != "open":
-                    github_issue_update(issue)
+
+            new_issue = github_get(req.headers["location"]).json()
+            if new_issue["number"] != id:
+                print "Error adding issue #%d: assigned unexpected issue id #%d" \
+                    % (id, new_issue["number"])
+                exit(1)
+            # Update issue state
+            if issue["state"] != "open":
+                github_issue_update(issue)
     print "Done adding with %d issues postponed." % nb_postponed
 
     return postponed
@@ -717,19 +761,19 @@ def main(argv):
     xml_root = xml_tree.getroot()
     issues = bugs_convert(xml_root)
 
-    print "===> Checking Bugzilla bug IDs are continuous..."
-    id = continuous_check(issues)
-    if id != 0:
-        print("Error checking continuity: bug #%d is not found in the '%s'"
-                            % (id, xml_file))
-        exit(1)
+    # print "===> Checking Bugzilla bug IDs are continuous..."
+    # id = continuous_check(issues)
+    # if id != 0:
+    #    print("Error checking continuity: bug #%d is not found in the '%s'"
+    #                        % (id, xml_file))
+        #exit(1)
 
     print "===> Checking all the labels exist on GitHub..."
     github_labels_check(issues)
-    print "===> Checking all the assignees exist on GitHub..."
-    github_assignees_check(issues)
+    # print "===> Checking all the assignees exist on GitHub..."
+    # github_assignees_check(issues)
 
-    print "===> Adding Bugzilla reports on GitHub preserving IDs..."
+    print "===> Adding Bugzilla reports to GitHub..." # preserving IDs..."
     postponed = github_issues_add(issues)
     print "===> Appending postponed Bugzilla reports on GitHub with new IDs..."
     github_postponed_issues_add(issues, postponed)
