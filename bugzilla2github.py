@@ -662,49 +662,49 @@ def issue_renumber(orig_issue, new_id):
     orig_issue["number"] = new_id
 
 
-def github_postponed_issues_add(issues, postponed):
-    id = len(issues)
-    # First check existing GitHub issues
-    while True:
-        id += 1
-        print "Checking issue #%d on GitHub..." % id
-        if not github_issue_exist(id):
-            print "\tissue #%d does not exist, breaking..." % id
-            break
-        issue = github_issue_get(id)
-        if not re.search(os.path.basename(__file__), issue["body"]) \
-            or not re.search(r"(?ims).*Bugzilla Bug ID: ([0-9]+).*", issue["body"]):
-            print "\tissue #%d is not from the Bugzilla, skipping..." % id
-        else:
-            bugzilla_id = re.sub(r"(?ims).*Bugzilla Bug ID: ([0-9]+).*", r"\1", issue["body"])
-            if bugzilla_id:
-                bugzilla_id = int(bugzilla_id)
-                print "\tissue #%d was imported from Bugzilla (bug %d), updating..." % (id, bugzilla_id)
-                if bugzilla_id not in postponed:
-                    print "Error adding postponed issue: Bugzilla bug %d is not postponed" % bugzilla_id
-                    exit(1)
-                bugzilla_issue = postponed.pop(bugzilla_id)
-                issue_renumber(bugzilla_issue, id)
-                github_issue_update(bugzilla_issue)
-                github_comment_update(bugzilla_issue)
-            else:
-                print "\tissue #%d is not from the Bugzilla, skipping..." % id
-
-    # Now check the postponed issues and append them to the end of the issues
-    for i in xrange(len(issues)):
-        id = i + 1
-        if id not in postponed:
-            continue
-        issue = postponed.pop(id)
-        print "Appending postponed issue #%d on GitHub..." % id
-        req = github_issue_append(issue)
-        if force_update:
-            new_issue = github_get(req.headers["location"]).json()
-            issue_renumber(issue, new_issue["number"])
-            # Update issue state
-            if issue["state"] != "open":
-                github_issue_update(issue)
-            github_comment_add(issue)
+# def github_postponed_issues_add(issues, postponed):
+#     id = len(issues)
+#     # First check existing GitHub issues
+#     while True:
+#         id += 1
+#         print "Checking issue #%d on GitHub..." % id
+#         if not github_issue_exist(id):
+#             print "\tissue #%d does not exist, breaking..." % id
+#             break
+#         issue = github_issue_get(id)
+#         if not re.search(os.path.basename(__file__), issue["body"]) \
+#             or not re.search(r"(?ims).*Bugzilla Bug ID: ([0-9]+).*", issue["body"]):
+#             print "\tissue #%d is not from the Bugzilla, skipping..." % id
+#         else:
+#             bugzilla_id = re.sub(r"(?ims).*Bugzilla Bug ID: ([0-9]+).*", r"\1", issue["body"])
+#             if bugzilla_id:
+#                 bugzilla_id = int(bugzilla_id)
+#                 print "\tissue #%d was imported from Bugzilla (bug %d), updating..." % (id, bugzilla_id)
+#                 if bugzilla_id not in postponed:
+#                     print "Error adding postponed issue: Bugzilla bug %d is not postponed" % bugzilla_id
+#                     exit(1)
+#                 bugzilla_issue = postponed.pop(bugzilla_id)
+#                 issue_renumber(bugzilla_issue, id)
+#                 github_issue_update(bugzilla_issue)
+#                 github_comment_update(bugzilla_issue)
+#             else:
+#                 print "\tissue #%d is not from the Bugzilla, skipping..." % id
+#
+#     # Now check the postponed issues and append them to the end of the issues
+#     for i in xrange(len(issues)):
+#         id = i + 1
+#         if id not in postponed:
+#             continue
+#         issue = postponed.pop(id)
+#         print "Appending postponed issue #%d on GitHub..." % id
+#         req = github_issue_append(issue)
+#         if force_update:
+#             new_issue = github_get(req.headers["location"]).json()
+#             issue_renumber(issue, new_issue["number"])
+#             # Update issue state
+#             if issue["state"] != "open":
+#                 github_issue_update(issue)
+#             github_comment_add(issue)
 
 
 def args_parse(argv):
@@ -775,8 +775,8 @@ def main(argv):
 
     print "===> Adding Bugzilla reports to GitHub..." # preserving IDs..."
     postponed = github_issues_add(issues)
-    print "===> Appending postponed Bugzilla reports on GitHub with new IDs..."
-    github_postponed_issues_add(issues, postponed)
+    # print "===> Appending postponed Bugzilla reports on GitHub with new IDs..."
+    # github_postponed_issues_add(issues, postponed)
     print "===> All done."
 
 
