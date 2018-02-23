@@ -19,8 +19,8 @@ There are several steps to consider
 - How to handle attachments: Since the GitHub API does not support adding attachments there are several options:
   - It is possible to manually upload attachments to issues. At over 500 attachments this was not a really an option.
   - There is an unmaintained ruby script to upload files to GitHub. Decided not to use it.
-  - Since the migration is only done once we can dump all attachments to a subdirectory, upload that to a repo and generate a link to the file in the issue comments. So that is what we will first try to do.
-
+  - Since the migration is only done once we can dump all attachments to a subdirectory, upload that to a repo and generate a link to the file in the issue comments. So that is what we will do.
+- Yes, we could do fancy "if already exist..."  etc, but this is a one off, so we simply add issues.
 
 # Sources of inspiration
 GitHub description of API: https://gist.github.com/jonmagic/5282384165e0f86ef105
