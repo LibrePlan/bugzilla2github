@@ -25,6 +25,9 @@ There are several steps to consider
 # Sources of inspiration
 GitHub description of API: https://gist.github.com/jonmagic/5282384165e0f86ef105
 
+Bugzilla database model: https://www.bugzilla.org/docs/2.16/html/dbschema.html
+And a little help: https://www.ravenbrook.com/tool/bugzilla-schema/
+
 Inspired by the work of Andriy Berestovskyy
 who wrote Bugzilla XML File to GitHub Issues Converter
 https://github.com/semihalf-berestovskyy-andriy/tools/blob/master/bugzilla2github
