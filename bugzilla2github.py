@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Bugzilla XML File to GitHub Issues Converter
-# by Andriy Berestovskyy
+# Bugzilla XML File to GitHub Issues Converter by Andriy Berestovskyy
+# https://github.com/semihalf-berestovskyy-andriy/tools/blob/master/bugzilla2github
+#
 # Adapted to LibrePlan project by J. Baten d.d. februari 2018
+# - Changed to use new GitHub Api
+# - Solve file problem by linking to separate repository
 #
 # How to use the script:
 # 1. Generate a GitHub access token:
@@ -632,7 +635,8 @@ def github_issues_add(issues):
                 print "Issue #%d already imported, updating..." % id
                 github_issue_update(issue)
             else:
-                print "Issue #%d already exists, postponing..." % id
+                # print "Issue #%d already exists, postponing..." % id
+                print "Issue #%d already exists..." % id
                 postponed[id] = issue
                 nb_postponed += 1
         else:
