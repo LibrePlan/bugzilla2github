@@ -27,6 +27,8 @@ from pprint import pprint,pformat
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+path_to_dir="./attachments/"
+
 # read config file
 configFile = "bugzilla2github.conf"
 config = ConfigParser.RawConfigParser()
@@ -63,6 +65,8 @@ def read_bugs(conn):
         results = cur.fetchall()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
+        results = None
+        colnames = None
     return results,colnames
 
 def read_comments(conn,bug_id):
@@ -71,11 +75,13 @@ def read_comments(conn,bug_id):
         # create a new cursor object
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         # execute the SELECT statement
-        cur.execute(""" SELECT * from longdescs where bug_id=%s limit 1""" % bug_id,)
+        cur.execute(""" SELECT * from longdescs where bug_id=%s """ % bug_id,)
         colnames = [desc[0] for desc in cur.description]
         results = cur.fetchall()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
+        results = None
+        colnames = None
     return results,colnames
 
 def read_attachment(conn,attach_id):
@@ -89,21 +95,23 @@ def read_attachment(conn,attach_id):
         #print query
         cur.execute(""" SELECT * from attachments where attach_id=%s  """ % attach_id, )
         colnames = [desc[0] for desc in cur.description]
-        results = cur.fetchall()
+        result = cur.fetchone()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-    return results,colnames
+        result=None
+        colnames=None
+    return result,colnames
 
-def save_attachment(conn,attach_id,filename):
+def save_attachment(conn,attach_id,bug_id,comment_id,filename):
     """ read BLOB data from a table """
     #conn = None
     try:
         # create a new cursor object
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         # execute the SELECT statement
-        cur.execute(""" SELECT thedata FROM atatch_data WHERE id=%s """,(attach_id,))
+        cur.execute(""" SELECT thedata FROM attach_data WHERE id=%s """,(attach_id,))
         blob = cur.fetchone()
-        open(path_to_dir + blob[0] + '.' + blob[1], 'wb').write(blob[2])
+        open(path_to_dir + str(bug_id) + '_' +  str(comment_id) + "_"+ filename, 'wb').write(blob[0])
         # close the communication with the PostgresQL database
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
@@ -132,13 +140,17 @@ for bug in bugs:
     for comment in comments:
         comment_id=comment["comment_id"]
         attach_id=comment["extra_data"]
-        if attach_id>0:
+        if attach_id is not None:
             print " attach_id",attach_id
             # check attachment record for this comment
             attachment,colnames=read_attachment(conn,attach_id)
             #for activity in activities:
-            pprint(attachment)
-            result=save_attachment(attach_id,bug_id,comment_id)
+            #pprint(colnames)
+            #pprint(attachment)
+            #attachment=attachment.pop
+            filename=attachment["filename"]
+            print " We have an attachment:",filename
+            result=save_attachment(conn,attach_id,bug_id,comment_id,filename)
 
         #pprint(comment)
         print " comment_id",comment["comment_id"]
