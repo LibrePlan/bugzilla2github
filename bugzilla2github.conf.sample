@@ -1,9 +1,11 @@
 [settings]
 github_token = 'yoursecretkeygoeshere'
-github_url = "https://api.github.com"
-github_owner = "kwoot"
-github_repo = "bz2gh"
+github_url = https://api.github.com
+github_owner = kwoot
+github_repo = bz2gh
 
+bugzilla_url= http://bugs.libreplan.org/
+filerepo_url= https://github.com/LibrePlan/bugzilla2githubattachments/blob/master/
 
 # Database settings
 engine = django.db.backends.postgresql_psycopg2

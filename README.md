@@ -36,7 +36,7 @@ https://www.theozimmermann.net/2017/10/bugzilla-to-github
 
 
 example: http://bugs.libreplan.org/attachment.cgi?id=212
-hoort bij ticket 635
+belongs to ticket 635
 
-moet handmatig geupload naar github.com en attachment toevoegen aan notitie.
+
 
