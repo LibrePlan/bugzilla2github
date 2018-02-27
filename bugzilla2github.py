@@ -416,7 +416,6 @@ for bug in bugs:
     bug_component=get_component(components,bug["component_id"])
     if bug_component:
         labels.append(bug_component)
-    #labels.append("mytest")
 
     # TODO We currently do not know WHEN an issue was closed, so do not store it in the issue.
     # Well, we could find it through bug_activity table but too much hassle actually.
@@ -497,28 +496,42 @@ for bug in bugs:
     headers={"Authorization": "token "+ GITHUB_TOKEN,
              "Accept": "application/vnd.github.golden-comet-preview+json" }
     result=requests.post(url, headers=headers, data = json.dumps(d))
+    # Should be added, but we do need an extra check to find errors.
     print result.status_code
     # Check if something went wrong
-    if result.status_code<>202:
+    if result.status_code==202:
         print result.json()
         result_dict=result.json()
         # Let's check if it all worked
         result_id=result_dict["id"]
         import_issues_url=result_dict["import_issues_url"]
         print "Result ID = "+str(result_id)
-        print "import_issues_url= " + str(result_dict["import_issues_url"])
+        print "import_issues_url = " + str(result_dict["import_issues_url"])
         # First get ID of issue added
         # Next request result
         # curl -H "Authorization: token ${GITHUB_TOKEN}" \
         #-H "Accept: application/vnd.github.golden-comet-preview+json" \
         #https://api.github.com/repos/#{GITHUB_USERNAME}/foo/import/issues/7
-        url2=import_issues_url + "/"+ str(result_id)
-        #print(url2)
-        result2=requests.get(import_issues_url, headers=headers, data = json.dumps(d))
+        complete_import_issue_url= import_issues_url + "/" + str(result_id)
+        print "Complete import_issues_url = " + str(complete_import_issue_url)
+
+        result2=requests.get(complete_import_issue_url, headers=headers, data = json.dumps(d))
         pprint(result2)
         print result2.json()
-        # Bail out on error
-        sys.exit(2)
+
+        print json.dumps(result2.json(), indent=4, sort_keys=True)
+        # Bail out on error, this means when status=failed
+        #print result2.json["status"]
+        result2_dict=result2.json()
+        # Let's check if it all worked
+        result2_status=result2_dict["status"]
+        print "Final verdict for this issue = " + result2_status
+        if result2_status == "failed":
+            print "***Bailing out!!!!"
+            sys.exit(2)
+    else:
+        # some error occured so we bail out!
+        sys.exit(3)
 
 # The end of handling all bugs
 
