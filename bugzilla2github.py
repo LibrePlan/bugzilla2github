@@ -219,6 +219,7 @@ def get_duplicates(conn):
         :return: object with all results (a dictionary of lists)
         """
     duplicates=dict()
+    reverse_duplicates=set()
     try:
         # create a new cursor object
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -229,14 +230,13 @@ def get_duplicates(conn):
         for result in results:
             if duplicates.get(result["dupe_of"]) is None:
                 duplicates[result["dupe_of"]]=list()
-                duplicates[result["dupe_of"]].append(result["dupe"])
-            else:
-                duplicates[result["dupe_of"]].append(result["dupe"])
+            duplicates[result["dupe_of"]].append(result["dupe"])
+            reverse_duplicates.add(result["dupe"])
 
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
 
-    return duplicates
+    return duplicates,reverse_duplicates
 
 
 def create_body(reporters,duplicates,bug):
@@ -351,7 +351,7 @@ reporters,colnames=get_reporters(conn)
 components,colnames=get_components(conn)
 
 # Create a duplicates lookup dictionary of lists
-duplicates=get_duplicates(conn)
+duplicates,reverse_duplicates=get_duplicates(conn)
 
 # read all bug reports
 bugs,colnames=read_bugs(conn)
@@ -416,6 +416,9 @@ for bug in bugs:
     bug_component=get_component(components,bug["component_id"])
     if bug_component:
         labels.append(bug_component)
+    # If this issue is a duplicate of another issue, then add label "duplicate"
+    if bug_id in reverse_duplicates:
+        labels.append("duplicate")
 
     # TODO We currently do not know WHEN an issue was closed, so do not store it in the issue.
     # Well, we could find it through bug_activity table but too much hassle actually.
