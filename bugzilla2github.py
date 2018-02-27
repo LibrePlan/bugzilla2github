@@ -71,7 +71,7 @@ def read_bugs(conn):
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         # execute the SELECT statement
         #cur.execute(""" SELECT * from bugs where bug_id=1284 """,)
-        cur.execute(""" SELECT * from bugs order by bug_id  """, )
+        cur.execute(""" SELECT * from bugs where bug_id>1 order by bug_id  """, )
         colnames = [desc[0] for desc in cur.description]
         results = cur.fetchall()
     except (Exception, psycopg2.DatabaseError) as error:
