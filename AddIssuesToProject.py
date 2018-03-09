@@ -142,7 +142,8 @@ def create_project_card(repo,token,my_column_id,my_issue_id):
     # pprint(result.json())
     return result
 
-
+print "Start"
+print "====="
 # Find all defined projects
 projects=get_projects_from_github(GITHUB_REPO,GITHUB_TOKEN)
 #pprint(projects)
@@ -160,11 +161,29 @@ if projects.status_code==200:
     #print my_project_id
     
     columns=get_columns_from_github(GITHUB_REPO,GITHUB_TOKEN,my_project_id)
-    # pprint(columns)
+    pprint(columns)
     # pprint(columns.json())
+
+    # create temporary index for easy of use 
+    print "Creating temporary index of existing cards"
+    card_index=set()
     if columns.status_code==200:
         for column in columns.json():
-            print "Column " + column["name"]+" has id: " + str(column["id"])
+            print "Index size= " + str(len(card_index))
+            print "Column \"" + column["name"]+"\" has id: " + str(column["id"])
+            cards=get_project_cards_from_github(GITHUB_REPO,GITHUB_TOKEN,column["id"])
+            print "Just retrieved " + str(len(cards.json())) + " cards."
+            for card in cards.json():
+                #pprint(card)
+                # Filter out cards linked to an issue.
+                if card.get("content_url") is not None:
+                    id=card.get("content_url").split("/")[-1]
+                    print "Issue with number " + str(id) + " already in cards"
+                    card_index.add(id)
+        
+        pprint(card_index)
+        print "Final index size= " + str(len(card_index))
+
         my_column_id=[ column["id"] for column in columns.json() if column["name"]==destination_column_name ][0]
         print "My column id is " + str(my_column_id)
 
@@ -186,20 +205,9 @@ if projects.status_code==200:
         
         # We now have everything to find out what needs to be done.
 
-        # create temporary index for easy of use
-        print 80 * "*"
-        print "Creating temporary index of existing cards"
-        card_index=set()
-        for column in columns.json():
-            cards=get_project_cards_from_github(GITHUB_REPO,GITHUB_TOKEN,column["id"])
-            for card in cards.json():
-                #pprint(card)
-                if card.get("content_url") is not None:
-                    id=card.get("content_url").split("/")[-1]
-                    print "Issue with number " + str(id) + " already in cards"
-                    card_index.add(id)
         
-        #pprint(card_index)
+        
+        pprint(card_index)
 
         print "About to start adding " + str(len(issues.json())) + " issues to the project."
         print "Adding cards linked to issues"
@@ -227,6 +235,8 @@ if projects.status_code==200:
         
         file.close() 
 
+    else:
+        print "ERROR: Getting columns"
     # The end of handling all issue
 
 print "Done"
