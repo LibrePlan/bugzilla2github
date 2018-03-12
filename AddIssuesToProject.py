@@ -80,11 +80,11 @@ def get_columns_from_github(repo,token,project_id):
     return result
 
 
-def get_open_issues_from_github(repo,token,project_id):
+def get_open_issues_from_github(repo,token,project_id,page):
     # GET /repos/:owner/:repo/issues
     urlparts=(str(GITHUB_URL),"repos" ,str(GITHUB_OWNER) , str(GITHUB_REPO) , "issues")
     url="/".join(urlparts)
-
+    url+="?per_page=100&page="+str(page)
     pprint(url)
 
     headers={"Authorization": "token "+ GITHUB_TOKEN,
@@ -98,8 +98,8 @@ def get_project_cards_from_github(repo,token,column_id):
     # GET /projects/columns/:column_id/cards
     urlparts=(str(GITHUB_URL),"projects" , "columns", str(column_id),"cards")
     url="/".join(urlparts)
-
-    pprint(url)
+    url+="?per_page=100"
+    #pprint(url)
 
     headers={"Authorization": "token "+ GITHUB_TOKEN,
              "Accept": "application/vnd.github.inertia-preview+json" }
@@ -123,7 +123,7 @@ def create_project_card(repo,token,my_column_id,my_issue_id):
     urlparts=(str(GITHUB_URL),"projects" , "columns", str(my_column_id),"cards")
     url="/".join(urlparts)
 
-    pprint(url)
+    #pprint(url)
 
     headers={"Authorization": "token "+ GITHUB_TOKEN,
              "Accept": "application/vnd.github.inertia-preview+json" }
@@ -161,7 +161,7 @@ if projects.status_code==200:
     #print my_project_id
     
     columns=get_columns_from_github(GITHUB_REPO,GITHUB_TOKEN,my_project_id)
-    pprint(columns)
+    # pprint(columns)
     # pprint(columns.json())
 
     # create temporary index for easy of use 
@@ -188,52 +188,53 @@ if projects.status_code==200:
         print "My column id is " + str(my_column_id)
 
         # Read all issues from GitHub
-        print "Retrieving all current issues from GitHub"
-        issues=get_open_issues_from_github(GITHUB_REPO,GITHUB_TOKEN,my_project_id)
-        if issues.status_code==200:
-            file = open("issues.txt","w") 
-            file.write(pformat(issues.json())) 
-            file.close() 
-        
-        # Read all project cards from GitHub
-        # print "Retrieving all current cards from GitHub"
-        # cards=get_project_cards_from_github(GITHUB_REPO,GITHUB_TOKEN,my_column_id)
-        # if cards.status_code==200:
-        #     file = open("cards.txt","w") 
-        #     file.write(pformat(cards.json())) 
-        #     file.close() 
-        
-        # We now have everything to find out what needs to be done.
+        # Since this is a one off script and we don't really care, we just request 5 pages of issues
+        for page in range(6):
+            print "Retrieving all current issues from GitHub"
+            issues=get_open_issues_from_github(GITHUB_REPO,GITHUB_TOKEN,my_project_id,page)
+            if issues.status_code==200:
+                #file = open("issues.txt","a") 
+                #file.write(pformat(issues.json())) 
+                #file.close() 
+                with open("issues.txt", "a") as issuesfile:
+                    issuesfile.write(pformat(issues.json()))
+                # Read all project cards from GitHub
+                # print "Retrieving all current cards from GitHub"
+                # cards=get_project_cards_from_github(GITHUB_REPO,GITHUB_TOKEN,my_column_id)
+                # if cards.status_code==200:
+                #     file = open("cards.txt","w") 
+                #     file.write(pformat(cards.json())) 
+                #     file.close() 
+                
+                # We now have everything to find out what needs to be done.
 
-        
-        
-        pprint(card_index)
+                #pprint(card_index)
 
-        print "About to start adding " + str(len(issues.json())) + " issues to the project."
-        print "Adding cards linked to issues"
-        issue_counter=0
-        #file = open("AddIssuesToProject.log","a") 
-        for issue in issues.json():
-            issue_counter+=1
-            print "Doing issue: " + str(issue_counter)
-            # if issue already in cards do nothing
-            if str(issue["number"]) in card_index:
-                print "Card for issue " + str(issue["number"]) + " exists"
-            else:
-                print "Creating card for issue " + str(issue["number"]) + " (\""+ issue["title"]  + "\")"
-                # else add card in correct column linking to issue
-                # create card in desired project and desired column
-                # Note that you have to send the id of the issue, not the number!
-                result=create_project_card(GITHUB_REPO,GITHUB_TOKEN,my_column_id,issue["id"])
-                # And try this ONLY ONCE!
-                #pprint(result)
-                pprint(result.json())
-                with open("AddIssuesToProject.log", "a") as logfile:
-                    logfile.write(pformat(result.json()))
-                #file.write(pformat(result.json())) 
-                #sys.exit(1)
-        
-        file.close() 
+                print "About to start adding " + str(len(issues.json())) + " issues to the project."
+                print "Adding cards linked to issues"
+                issue_counter=0
+                #file = open("AddIssuesToProject.log","a") 
+                for issue in issues.json():
+                    issue_counter+=1
+                    print "Doing issue: " + str(issue_counter)
+                    # if issue already in cards do nothing
+                    if str(issue["number"]) in card_index:
+                        print "Card for issue " + str(issue["number"]) + " exists"
+                    else:
+                        print "Creating card for issue " + str(issue["number"]) + " (\""+ issue["title"]  + "\")"
+                        # else add card in correct column linking to issue
+                        # create card in desired project and desired column
+                        # Note that you have to send the id of the issue, not the number!
+                        result=create_project_card(GITHUB_REPO,GITHUB_TOKEN,my_column_id,issue["id"])
+                        # And try this ONLY ONCE!
+                        #pprint(result)
+                        pprint(result.json())
+                        with open("AddIssuesToProject.log", "a") as logfile:
+                            logfile.write(pformat(result.json()))
+                        #file.write(pformat(result.json())) 
+                        #sys.exit(1)
+                
+                #file.close() 
 
     else:
         print "ERROR: Getting columns"
