@@ -30,11 +30,11 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 destination_project_name = "Cleanup"
-#destination_column_name = "To do"
-destination_column_name = "In progress"
+destination_column_name = "To do"
+#destination_column_name = "In progress"
 page_size=100
 page_size=30 # 30 seems to be the GitHub maximum
-my_page=2
+my_page=1
 
 # read config file
 configFile = "AddIssuesToProject.conf"
